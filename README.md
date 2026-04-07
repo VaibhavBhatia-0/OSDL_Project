@@ -1,11 +1,11 @@
 # Hotel Management System – Product Definition
 
-##  Overview
+## Overview
 JavaFX-based standalone desktop application for managing hotel rooms, customers, bookings, checkout, and billing using file-based persistence.
 
 ---
 
-##  Objectives
+## Objectives
 - Implement OOP concepts (Encapsulation, Inheritance, Polymorphism)
 - Build modular JavaFX GUI (FXML + CSS)
 - Use file handling (Serialization) for persistence
@@ -13,7 +13,7 @@ JavaFX-based standalone desktop application for managing hotel rooms, customers,
 
 ---
 
-##  Architecture
+## Architecture
 Pattern: MVC
 
 - Model → Room, Customer, Booking
@@ -22,7 +22,7 @@ Pattern: MVC
 
 ---
 
-##  Core Functionalities (5 Marks)
+## Core Functionalities (5 Marks)
 
 ### Room Management
 - Add room (room_number, room_type, price_per_night)
@@ -46,7 +46,7 @@ Pattern: MVC
 
 ---
 
-##  Additional Functionalities (5 Marks)
+## Additional Functionalities (5 Marks)
 
 ### File Persistence
 - Save all data → `.dat` file (Serialization)
@@ -74,7 +74,7 @@ Pattern: MVC
 
 ---
 
-##  UX & Functional Enhancements
+## UX & Functional Enhancements
 
 ### Booking Lifecycle Clarity
 - Room status transitions:
@@ -98,7 +98,7 @@ Pattern: MVC
 
 ---
 
-##  Data Persistence Behavior
+## Data Persistence Behavior
 
 - System saves all data in a `.dat` file using serialization
 - Data is automatically loaded on application startup
@@ -113,7 +113,7 @@ Pattern: MVC
 
 ---
 
-##  Dashboard Functionality
+## Dashboard Functionality
 
 - Displays:
   - total_rooms
@@ -124,7 +124,7 @@ Pattern: MVC
 
 ---
 
-##  User Interface Design
+## User Interface Design
 
 ### Navigation
 - Tab-based interface:
@@ -166,7 +166,28 @@ Pattern: MVC
 
 ---
 
-##  Modules
+## FXML Controller Binding (Critical)
+
+- Each `.fxml` file must have a properly defined controller:
+  - fx:controller="com.hotel.controller.YourController"
+
+- All UI elements must match controller variables:
+  - @FXML private TextField roomNumberField;
+
+- Method bindings must be correct:
+  - onAction="#handleAddRoom"
+
+### Rules
+- Field names in FXML and controller must match exactly
+- All @FXML fields must be initialized before use
+- Avoid NullPointerException by:
+  - Correct fx:id mapping
+  - Proper controller linking
+  - Loading FXML using FXMLLoader correctly
+
+---
+
+## Modules
 
 ### Dashboard
 - total_rooms
@@ -191,7 +212,7 @@ Pattern: MVC
 
 ---
 
-##  Data Storage
+## Data Storage
 - ObjectOutputStream / ObjectInputStream
 - Stored:
   - ArrayList<Room>
@@ -200,7 +221,7 @@ Pattern: MVC
 
 ---
 
-##  OOP Concepts
+## OOP Concepts
 - Encapsulation → private fields + getters/setters
 - Inheritance → AbstractRoom → StandardRoom / DeluxeRoom / SuiteRoom
 - Polymorphism → calculateTariff(int nights)
@@ -210,7 +231,7 @@ Pattern: MVC
 
 ---
 
-##  Lab Concept Integration
+## Lab Concept Integration
 
 ### Week 1 – OOP
 - Inheritance, Polymorphism, Encapsulation implemented in model classes
@@ -250,7 +271,7 @@ Pattern: MVC
 
 ---
 
-##  Threading Design
+## Threading Design
 
 ### Booking Thread
 - Triggered on booking
@@ -265,7 +286,7 @@ Pattern: MVC
 
 ---
 
-##  Synchronization
+## Synchronization
 - synchronized book_room()
 - Ensures:
   - No double booking
@@ -274,7 +295,7 @@ Pattern: MVC
 
 ---
 
-##  Constraints (VERY IMPORTANT)
+## Constraints (VERY IMPORTANT)
 
 ### Functional Constraints
 - No database (strictly file-based)
@@ -300,43 +321,37 @@ Pattern: MVC
 
 ---
 
-## 🔧 Tech Stack
-- Java 21
+## Tech Stack
+- Java 23
 - JavaFX 21
 - Maven (latest stable)
 - CSS (JavaFX styling)
 
 ---
 
-##  Project Structure (Maven)
+## Project Structure (Maven)
 
 hotel-management/
 
 │
 
 ├── src/main/java/com/hotel/
-│   
-├── model/
-│   
-├── service/
-│   
-├── controller/
-│   
-└── Main.java
+│   ├── model/
+│   ├── service/
+│   ├── controller/
+│   └── Main.java
 │
 ├── src/main/resources/
-│   
-├── fxml/
-│   
-└── css/
+│   ├── fxml/
+│   └── css/
 │
 ├── pom.xml
 
 ---
 
-##  Change Log
+## Change Log
 
-### v1.5
-- Added data persistence behavior section
-- Added detailed UI design section
-- Improved clarity for evaluation and demo
+### v1.6
+- Updated to Java 23
+- Added FXML controller binding guidelines
+- Improved robustness for JavaFX integration

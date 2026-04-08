@@ -1,310 +1,57 @@
-# Hotel Management System – Product Definition
+# Hotel Management System — Complete Project Documentation
 
 ## Overview
-JavaFX-based standalone desktop application for managing hotel rooms, customers, bookings, checkout, and billing using file-based persistence (serialization). Built with Maven, FXML + CSS, and MVC architecture.
 
----
-
-## Objectives
-- Implement OOP concepts (Encapsulation, Inheritance, Polymorphism, Abstraction)
-- Build modular JavaFX GUI using FXML + Scene Builder + CSS
-- Use file handling (Serialization) for data persistence
-- Follow MVC architecture for clean separation of concerns
-- Demonstrate all lab concepts (Week 1–10) in a single integrated application
-
----
-
-## Architecture
-**Pattern: MVC**
-
-- **Model** → AbstractRoom, StandardRoom, DeluxeRoom, SuiteRoom, Customer, Booking
-- **Service** → RoomService, CustomerService, BookingService, PersistenceService
-- **Controller** → DashboardController, RoomController, CustomerController, BookingController
-- **UI** → JavaFX (FXML + CSS + Scene Builder)
-
----
-
-## Core Functionalities (5 Marks)
-
-### Room Management
-- Add room (`room_number`, `room_type`, `price_per_night`)
-- View all rooms in a TableView
-- Filter and display only available rooms
-
-### Customer Management
-- Add customer (`customer_id`, `name`, `contact`)
-- View all customers in a TableView
-- Remove customer (only if no active booking)
-
-### Booking System
-- Book a room (select customer + room + check-in/check-out dates via DatePicker)
-- Prevent double booking (room must be available)
-- Auto cost calculation (`nights × price_per_night`)
-- `book_room()` is `synchronized` to prevent race conditions
-
-### Checkout
-- Checkout a booked room
-- Display bill summary on checkout via Alert dialog
-- Update room availability automatically
-- Maintain booking history
-
----
-
-## Additional Functionalities (5 Marks)
-
-### 1. File Persistence (Week 5 + 6)
-- All data saved to a single `.dat` file using Java Serialization (`ObjectOutputStream` / `ObjectInputStream`)
-- **Primary save mechanism: Shutdown Hook**
-  - `Runtime.getRuntime().addShutdownHook()` triggers save automatically when the app window is closed
-  - On next launch, data is loaded from the `.dat` file automatically
-  - This directly handles the demo scenario: close app → reopen → data intact
-- **Secondary save: Background Auto-Save Thread (Bonus)**
-  - Daemon thread runs every 60 seconds as a safety net
-  - Does NOT replace the shutdown hook — just an extra backup
-  - Uses `Thread.sleep(60000)` in a loop; marked as daemon so it doesn't block JVM exit
-- Manual save button also provided in the UI
-
-### 2. GUI Design with Styles and Layouts (Week 9)
-- Tab-based interface: Dashboard | Rooms | Customers | Bookings
-- Dark theme applied globally via external CSS file
-- Card-style components on Dashboard
-- GridPane for all input forms
-- VBox / HBox for navigation and button rows
-- TableView for all data listings
-- Alerts (success / error) for all user actions
-- Input fields cleared after successful operations
-
-### 3. Maven Integration
-- Standard Maven project structure
-- JavaFX dependencies managed via `pom.xml`
-- `javafx-maven-plugin` for running and packaging
-- Clean separation of `src/main/java` and `src/main/resources`
-
-### 4. Billing Management (Week 2 + 6)
-- Total cost calculated per booking: `nights × price_per_night`
-- Bill displayed as Alert dialog on checkout with:
-  - Room Number and Type
-  - Check-in / Check-out dates
-  - Number of nights
-  - Price per night
-  - **Total cost**
-- Booking history table shows all past bills
-- Dashboard shows **Total Revenue** (sum of all completed bookings)
-
-### 5. Scene Builder + Various Components (Week 9)
-- All FXML files designed using Scene Builder
-- UI components used:
-  - `Label`, `TextField`, `Button` (basic)
-  - `ComboBox` (room type selection)
-  - `TableView` + `TableColumn` (data display)
-  - `DatePicker` (check-in / check-out dates)
-  - `TabPane` + `Tab` (navigation)
-  - `Alert` (confirmations and errors)
-
----
-
-## Data Persistence – Detailed Behavior
-
-### Save Strategy
-| Trigger | Mechanism | Purpose |
-|---|---|---|
-| App window closed | Shutdown Hook | Primary – guaranteed save on exit |
-| Every 60 seconds | Daemon Thread | Backup – protects against crashes |
-| Manual button click | Direct call | User-triggered save |
-| App startup | Auto-load | Restores previous state |
-
-### Shutdown Hook Implementation Note
-```
-Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-    PersistenceService.saveAll(rooms, customers, bookings);
-}));
-```
-Registered once in `Main.java` at startup.
-
-### Demo Scenario
-- Run app → add rooms/customers/bookings
-- Close the window (X button)
-- Shutdown hook fires → data saved to `hotel_data.dat`
-- Reopen app → data loaded → all records visible
-
-### Persistence Guarantee
-- Data survives application restart and system reboot
-- Single file stores: `ArrayList<Room>`, `ArrayList<Customer>`, `ArrayList<Booking>`
-
----
-
-## OOP Concepts Integration
-
-| Concept | Implementation |
-|---|---|
-| Encapsulation | Private fields + getters/setters in all model classes |
-| Inheritance | `AbstractRoom` → `StandardRoom`, `DeluxeRoom`, `SuiteRoom` |
-| Polymorphism | `calculateTariff(int nights)` overridden per room type |
-| Abstraction | `abstract class AbstractRoom` with abstract `calculateTariff()` |
-| Collections | `ArrayList`, `HashMap` in service classes |
-| Generics | `ArrayList<T>`, optional `Pair<T,U>` for booking records |
-
----
-
-## Threading Design
-
-### Booking Synchronization (Week 4)
-- `book_room()` method in `BookingService` is `synchronized`
-- Prevents race conditions if multiple actions are triggered simultaneously
-- Ensures no double booking at the data level
-- **Keep this simple** — synchronized method only, no complex background booking thread
-
-### Auto-Save Daemon Thread (Week 3)
-- Created as a daemon thread (`setDaemon(true)`)
-- Runs in background every 60 seconds
-- Uses `Thread.sleep(60000)`
-- Updates UI counters using `Platform.runLater()` if needed
-- Marked daemon so JVM exit is not blocked
-
-### Why No Complex Threading for Booking
-- A background booking thread with `Platform.runLater()` introduces timing bugs that are hard to debug during a demo
-- The synchronized method alone satisfies Week 4 (Synchronization) requirements cleanly
-
----
-
-## User Interface Design
-
-### Navigation
-Tab-based interface with 4 tabs:
-1. **Dashboard** – System overview
-2. **Rooms** – Room management
-3. **Customers** – Customer management
-4. **Bookings** – Booking and checkout
-
-### Dashboard Tab
-- Cards showing:
-  - Total Rooms
-  - Available Rooms
-  - Occupied Rooms
-  - Total Revenue
-- Updates dynamically after every booking and checkout
-
-### Rooms Tab
-- Input form (GridPane): Room Number, Room Type (ComboBox), Price per Night
-- Add Room button
-- TableView: Room Number | Type | Price | Status (Available / Booked)
-- Filter button: Show Available Rooms Only
-
-### Customers Tab
-- Input form (GridPane): Customer ID, Name, Contact Number
-- Add / Remove Customer buttons
-- TableView: Customer ID | Name | Contact
-
-### Bookings Tab
-- Booking form: Select Customer (ComboBox), Select Room (ComboBox), Check-in Date (DatePicker), Check-out Date (DatePicker)
-- Book Room button
-- Checkout button (select from active bookings)
-- Booking History TableView: Booking ID | Customer | Room | Dates | Cost | Status
-
-### UI Style (CSS)
-- Dark theme (CSS applied globally via `scene.getStylesheets()`)
-- Consistent spacing and padding
-- Color-coded status: green = Available, red = Booked
-- Card components on Dashboard using styled `VBox`
-
----
-
-## FXML Controller Binding
-
-### Rules
-- Each `.fxml` file declares its controller: `fx:controller="com.hotel.controller.XController"`
-- All UI elements use matching `fx:id` values
-- All button actions bound via `onAction="#handleMethodName"`
-- `@FXML` fields initialized before use (guaranteed by `FXMLLoader`)
-- No `NullPointerException` risk if `fx:id` names match exactly between FXML and controller
-
-### Example Pattern
-```
-@FXML private TextField roomNumberField;
-@FXML private ComboBox<String> roomTypeCombo;
-@FXML private TableView<Room> roomTable;
-
-@FXML
-private void handleAddRoom() { ... }
-```
-
----
-
-## Lab Concept Mapping
-
-| Week | Concept | Where Used |
-|---|---|---|
-| Week 1 | OOP | Model classes: inheritance, polymorphism, encapsulation |
-| Week 2 | Wrapper Classes, Autoboxing | Billing calculations using `Integer`, `Double` |
-| Week 3 | Multithreading | Auto-save daemon thread |
-| Week 4 | Synchronization | `synchronized book_room()` in BookingService |
-| Week 5 | File Streams | `FileOutputStream` / `FileInputStream` in PersistenceService |
-| Week 6 | Serialization | Object serialization for `.dat` file storage |
-| Week 7 | Generics | `ArrayList<Room>`, `ArrayList<Booking>`, `Pair<T,U>` |
-| Week 8 | Collections | `ArrayList`, `HashMap` for in-memory data management |
-| Week 9 | JavaFX | FXML, Scene Builder, event handling, all UI components |
-| Week 10 | Integration | Complete system combining all above |
-
----
-
-## Constraints
-
-### Functional
-- No database — strictly file-based persistence
-- Standalone desktop JavaFX application only
-- Must support: add room, view rooms, add customer, book room, checkout, view history
-
-### Data Validation
-- `room_number` → unique, positive integer
-- `customer_id` → unique, non-empty string
-- `price_per_night` → must be > 0
-- `check_out_date` → must be after `check_in_date`
-- No empty fields allowed (validated before any operation)
-
-### Business Rules
-- Cannot book a room that is already booked
-- Cannot remove a customer with an active booking
-- Cannot checkout a room that is already available
-- Booking cost = `nights × price_per_night` (calculated automatically)
+A JavaFX-based standalone desktop application for managing a luxury hotel's rooms, guests, bookings, checkout billing, room services, and analytics. Built with Maven, FXML + CSS, and strict MVC architecture. Uses Java Serialization for file-based persistence — no database required.
 
 ---
 
 ## Tech Stack
 
-| Component | Technology |
-|---|---|
-| Language | Java 23 |
-| UI Framework | JavaFX 21 |
-| Build Tool | Maven (latest stable) |
-| UI Design | Scene Builder + CSS |
-| Persistence | Java Serialization (.dat file) |
-| Architecture | MVC |
+| Component     | Technology                        |
+|---------------|-----------------------------------|
+| Language      | Java 23                           |
+| UI Framework  | JavaFX 21                         |
+| Build Tool    | Maven                             |
+| UI Design     | Scene Builder + External CSS      |
+| Persistence   | Java Object Serialization (.dat)  |
+| Architecture  | MVC (Model-View-Controller)       |
 
 ---
 
-## Project Structure (Maven)
+## Project Structure
 
 ```
 hotel-management/
 │
 ├── src/main/java/com/hotel/
 │   ├── model/
-│   │   ├── AbstractRoom.java
+│   │   ├── Room.java                  (abstract)
 │   │   ├── StandardRoom.java
 │   │   ├── DeluxeRoom.java
 │   │   ├── SuiteRoom.java
 │   │   ├── Customer.java
-│   │   └── Booking.java
+│   │   ├── Booking.java               (+ discount + feedback)
+│   │   └── RoomServiceRequest.java    (NEW)
+│   │
 │   ├── service/
+│   │   ├── AppContext.java
 │   │   ├── RoomService.java
 │   │   ├── CustomerService.java
 │   │   ├── BookingService.java
+│   │   ├── RoomServiceService.java    (NEW)
 │   │   └── PersistenceService.java
+│   │
 │   ├── controller/
 │   │   ├── DashboardController.java
 │   │   ├── RoomController.java
 │   │   ├── CustomerController.java
-│   │   └── BookingController.java
+│   │   ├── BookingController.java
+│   │   └── RoomServiceController.java (NEW)
+│   │
+│   ├── util/
+│   │   └── AlertHelper.java           (NEW — styled alerts)
+│   │
 │   └── Main.java
 │
 ├── src/main/resources/
@@ -312,7 +59,8 @@ hotel-management/
 │   │   ├── Dashboard.fxml
 │   │   ├── Rooms.fxml
 │   │   ├── Customers.fxml
-│   │   └── Bookings.fxml
+│   │   ├── Bookings.fxml
+│   │   └── RoomServices.fxml          (NEW)
 │   └── css/
 │       └── style.css
 │
@@ -321,14 +69,415 @@ hotel-management/
 
 ---
 
-## Change Log
+## OOP Concepts — Where Each Is Used
 
-### v2.0
-- Replaced auto-save timer thread as primary save with **Shutdown Hook** as primary mechanism
-- Kept daemon thread as secondary backup only
-- Removed complex background booking thread (replaced with simple `synchronized` method)
-- Added explicit `DatePicker` usage for booking dates
-- Added persistence demo scenario documentation
-- Clarified threading design rationale
-- Added complete Lab Concept Mapping table
-- Updated project structure with all class names
+### 1. Encapsulation (Week 1)
+Every model class uses private fields with public getters/setters.
+- `Room`, `Customer`, `Booking`, `RoomServiceRequest` — all fields are private
+- Service classes expose only defined public methods; internal lists are private
+- `AlertHelper` encapsulates all dialog-building logic behind static methods
+
+### 2. Inheritance (Week 1)
+```
+Room  (abstract)
+ ├── StandardRoom
+ ├── DeluxeRoom
+ └── SuiteRoom
+```
+All three concrete room types extend the abstract `Room` class and inherit `roomNumber`, `pricePerNight`, getters/setters.
+
+### 3. Polymorphism (Week 1)
+`calculateTariff(int nights)` is abstract in `Room` and overridden differently in each subclass:
+- `StandardRoom` → `price × nights` (base rate)
+- `DeluxeRoom`   → `price × nights × 1.1` (10% premium)
+- `SuiteRoom`    → `price × nights × 1.25` (25% premium)
+
+Called polymorphically in `BookingService.bookRoom()`:
+```java
+double cost = room.calculateTariff((int) nights);
+```
+
+### 4. Abstraction (Week 1)
+`Room` is declared `abstract` — it cannot be instantiated directly. `calculateTariff()` and `getRoomType()` are abstract methods that enforce implementation in all subclasses.
+
+### 5. Enums (Week 1 / Week 7)
+`RoomServiceRequest.ServiceType` and `ServiceStatus` use Java enums with fields:
+```java
+public enum ServiceType {
+    FOOD_DELIVERY("Food Delivery", 250),
+    SPA_WELLNESS("Spa & Wellness", 800), ...
+}
+```
+
+---
+
+## Collections Used (Week 8)
+
+| Collection       | Location                | Purpose                              |
+|------------------|-------------------------|--------------------------------------|
+| `ArrayList<Room>`| `RoomService`           | All rooms in memory                  |
+| `ArrayList<Booking>` | `BookingService`    | All bookings in memory               |
+| `ArrayList<RoomServiceRequest>` | `RoomServiceService` | All service requests    |
+| `HashMap<String, Customer>` | `CustomerService` | Fast O(1) lookup by ID         |
+| `Map<String, Double>` | `BookingController`| Discount code → percentage map      |
+| `stream() + Collectors` | All services    | Filtering, grouping, summing         |
+
+---
+
+## Generics (Week 7)
+
+Used throughout with Java Collections:
+```java
+ArrayList<Room>          rooms
+HashMap<String, Customer> customers
+ArrayList<Booking>       bookings
+TableView<Booking>       bookingTable
+ObservableList<Room>     roomList
+Map<String, Double>      DISCOUNT_CODES
+```
+Also in service return types:
+```java
+public List<Booking> filterByStatus(String status) { ... }
+public List<Room> searchRooms(String query) { ... }
+```
+
+---
+
+## Threading Design (Week 3 + Week 4)
+
+### Thread 1 — Auto-Save Daemon (Week 3)
+```java
+Thread autoSave = new Thread(() -> {
+    while (true) {
+        Thread.sleep(60_000);
+        persistenceService.saveAllData(...);
+    }
+});
+autoSave.setDaemon(true);    // Won't block JVM exit
+autoSave.start();
+```
+Runs every 60 seconds in the background as a safety net save.
+
+### Thread 2 — Shutdown Hook (Week 5)
+```java
+Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+    persistenceService.saveAllData(...);
+}));
+```
+**Primary save mechanism.** Fires automatically when the app window is closed. Guarantees data is not lost on exit.
+
+### Thread 3 — Checkout Notification Thread (Week 3)
+```java
+Thread notifThread = new Thread(() -> {
+    Thread.sleep(2000);   // Wait for UI to load
+    List<Booking> dueToday = bookingService.getAllBookings()
+        .stream()
+        .filter(b -> b.getCheckOut().isEqual(LocalDate.now()))
+        .toList();
+    if (!dueToday.isEmpty()) {
+        Platform.runLater(() -> AlertHelper.showAndWait(...));
+    }
+});
+notifThread.setDaemon(true);
+notifThread.start();
+```
+Background thread that alerts staff at startup if any bookings are due for checkout today. Uses `Platform.runLater()` to update JavaFX UI safely from a non-UI thread.
+
+### Thread 4 — Synchronization (Week 4)
+```java
+public synchronized boolean bookRoom(...) { ... }
+```
+`bookRoom()` in `BookingService` is `synchronized` — prevents race conditions if two actions try to book the same room simultaneously.
+
+### Summary Table
+
+| Thread Name              | Type    | Purpose                                  |
+|--------------------------|---------|------------------------------------------|
+| AutoSaveThread           | Daemon  | Save data every 60 seconds               |
+| Shutdown Hook Thread     | JVM     | Final save when app window closes        |
+| CheckoutNotificationThread | Daemon | Alert on startup if checkouts are due  |
+| `synchronized bookRoom()`| Lock    | Prevent double-booking race condition    |
+
+---
+
+## File Persistence (Week 5 + Week 6)
+
+### Mechanism
+All data is serialized into a single binary file `hotel_data.dat` using Java's `ObjectOutputStream` / `ObjectInputStream`.
+
+```java
+// Save
+ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("hotel_data.dat"));
+oos.writeObject(hotelData);   // HotelData wraps all 4 lists/maps
+
+// Load
+ObjectInputStream ois = new ObjectInputStream(new FileInputStream("hotel_data.dat"));
+HotelData data = (HotelData) ois.readObject();
+```
+
+### What Is Serialized
+All model classes implement `Serializable` with explicit `serialVersionUID`:
+- `Room` (and subclasses)
+- `Customer`
+- `Booking` (including feedback + discount fields)
+- `RoomServiceRequest`
+
+### Save Triggers
+
+| Trigger               | Mechanism           | Priority  |
+|-----------------------|---------------------|-----------|
+| App window closed     | Shutdown Hook       | Primary   |
+| Every 60 seconds      | Daemon Thread       | Backup    |
+| Manual button click   | Direct call         | On-demand |
+| App startup           | Auto-load           | Restore   |
+
+---
+
+## Wrapper Classes & Autoboxing (Week 2)
+
+Used throughout billing and data handling:
+```java
+// Autoboxing: int → Integer, double → Double
+TableColumn<Booking, Double> costCol = ...;
+costCol.setCellValueFactory(new PropertyValueFactory<>("totalCost"));
+
+// Integer.parseInt(), Double.parseDouble() for field validation
+int roomNumber = Integer.parseInt(roomNumberField.getText().trim());
+double price   = Double.parseDouble(priceField.getText().trim());
+
+// String.format() with wrapper types in billing
+String.format("₹%.2f", b.getTotalCost());  // Double unboxing
+```
+
+---
+
+## Core Functionality
+
+### Room Management
+- Add rooms as Standard / Deluxe / Suite with a price per night
+- Each type uses polymorphic `calculateTariff()` with its own pricing rule
+- Update price, delete room (blocked if active booking exists)
+- Search by room number or type; filter by Available / Booked status
+- TableView shows: Room No. | Type | Price/Night | Status (live)
+
+### Customer Management
+- Add customers with ID, name, contact, email
+- **Real-time field validation**: email checked for `@domain.tld` pattern; phone checked for 10-digit format
+- Visual hint labels (`✓ Valid` / `✗ Invalid`) update as you type
+- Update, delete (blocked if active booking), clear form
+- Customer table shows a **Bookings count** column
+- **View Booking History**: select a customer → see all their bookings, total spent, and any feedback left
+
+### Booking System
+- Select customer ID and room number manually; pick dates with DatePicker
+- **Check Availability**: instantly verify if a room is free for chosen dates with estimated cost shown
+- **Promo / Discount Codes**: enter a code at booking to get a percentage discount:
+  - `WELCOME10` → 10% off
+  - `DELUXE15`  → 15% off
+  - `VIP20`     → 20% off
+  - `SUMMER5`   → 5% off
+  - `STAFF50`   → 50% off
+  - Live validation hint shows as you type
+- Overlap detection prevents double-booking the same room for overlapping dates
+- Cost is auto-calculated using the room's `calculateTariff()` method
+- `bookRoom()` is `synchronized` for thread safety
+
+### Checkout
+- Select booking from table → click Checkout
+- **Feedback dialog** pops up before the bill:
+  - 1–5 star radio buttons (default: 4 stars)
+  - Optional text comment
+  - "Skip" option
+- Rating stored in Booking and displayed as `★★★★☆` in the table
+- Formatted bill shown in a styled TextArea dialog
+- Bill includes: customer info, room details, nights, price/night, discount (if any), room service charges, grand total
+
+### Cancellation
+- Cancel any active booking with a styled confirmation dialog
+- Cancelled bookings shown in the table with "Cancelled" status
+- Cannot cancel a completed booking
+
+---
+
+## Room Services Module (NEW)
+
+### Concept
+Mirrors real-world hotel services. Guests with an **active booking** can request in-room services that are tracked through a lifecycle.
+
+### Available Services
+| Service           | Charge       |
+|-------------------|--------------|
+| Room Cleaning     | Free         |
+| Food Delivery     | ₹250         |
+| Laundry           | ₹150         |
+| Spa & Wellness    | ₹800         |
+| Extra Amenities   | ₹100         |
+| Maintenance       | Free         |
+| Wake-Up Call      | Free         |
+| Airport Transfer  | ₹600         |
+
+### Request Lifecycle
+```
+PENDING  →  IN_PROGRESS  →  COMPLETED
+                          ↘  CANCELLED
+```
+- Staff can move any request through these statuses
+- Cancelled requests do not add to the bill
+- Completed service charges are **included in the checkout bill** automatically
+
+### Features
+- Select an active booking → select service type → optional special instructions
+- Mini stats on the panel: open request count + total service charges accumulated
+- Filter requests by status; view all requests for a specific booking
+- Table shows: Request ID | Booking | Room | Guest | Service | Charge | Status | Time | Instructions
+
+---
+
+## Bill Export
+
+### Export Selected Bill (`.txt`)
+Generates a formatted receipt for one completed booking:
+```
+┌─────────────────────────────────────────────────┐
+│              LUXURY HOTEL — BILL                │
+└─────────────────────────────────────────────────┘
+ Booking ID   : BK-A3F9C2
+ Customer     : Ravi Shankar
+ ...
+ Room Charges : ₹4,400.00
+ Room Services: ₹400.00
+ ═════════════════════════════════════════════════
+ GRAND TOTAL  : ₹4,800.00
+```
+
+### Export All Bills Report (`.txt`)
+One file with every completed checkout, formatted individually, with a grand total at the bottom.
+
+### Export CSV
+Full booking history exported as a `.csv` file including discount %, feedback rating, and comments.
+
+---
+
+## Custom Alert System (`AlertHelper`)
+
+All system `Alert` dialogs have been replaced with a custom `AlertHelper` class that produces styled dialogs matching the Noir & Gold theme.
+
+### Alert Types
+| Kind    | Accent Color | Icon | Use Case                     |
+|---------|-------------|------|------------------------------|
+| INFO    | Gold #C9A84C | i    | General information          |
+| SUCCESS | Green #22c55e| ✓    | Action completed successfully|
+| WARNING | Amber #f59e0b| !    | Non-blocking warnings        |
+| ERROR   | Red #ef4444  | ✕    | Validation failures, errors  |
+| CONFIRM | Gold #C9A84C | ?    | Confirmation before action   |
+
+### Usage
+```java
+AlertHelper.showAndWait(AlertHelper.Kind.SUCCESS, "Booking Confirmed", "BK-XXXXX created.");
+AlertHelper.showAndWait(AlertHelper.Kind.ERROR,   "Validation Error",  "Email is invalid.");
+boolean ok = AlertHelper.confirm("Delete Room", "This cannot be undone.");
+```
+
+---
+
+## Dashboard
+
+### Stat Cards (Live)
+- Total Rooms, Available, Occupied, Total Revenue
+- Total Customers, Active Bookings, Completed Checkouts, Cancelled Bookings
+- Average Guest Rating (from feedback)
+- Top Revenue Room Type
+
+### Live BarChart (NEW)
+JavaFX `BarChart` updated on every refresh:
+- Series 1: Available vs Occupied rooms (green / red bars)
+- Series 2: Revenue by room type (₹ / 100 for scale)
+
+### Statistics Panel
+Click "Statistics" for a detailed popup:
+- Revenue breakdown by room type
+- Room service total charges + grand combined revenue
+- Feedback distribution (5★ to 1★ counts)
+- Average rating with star display
+- Recent guest comments (up to 5)
+
+---
+
+## Input Validation Summary
+
+| Field          | Rule                                       | Feedback              |
+|----------------|--------------------------------------------|-----------------------|
+| Email          | Must match `user@domain.tld` regex         | Live hint label       |
+| Contact        | 10 digits, optional `+91` prefix           | Live hint label       |
+| Room Number    | Positive integer, must be unique           | Error on submit       |
+| Price          | Must be > 0                                | Error on submit       |
+| Check-Out Date | Must be strictly after Check-In            | Error on submit       |
+| Check-In Date  | Cannot be in the past                      | Error on submit       |
+| Customer ID    | Must exist before booking                  | Error on submit       |
+| Promo Code     | Must match known codes or be blank         | Live hint label       |
+
+---
+
+## Lab Concept Mapping
+
+| Week | Concept                  | Where Demonstrated                                                     |
+|------|--------------------------|------------------------------------------------------------------------|
+| 1    | OOP                      | `Room` (abstract), `StandardRoom`/`DeluxeRoom`/`SuiteRoom` (inheritance + polymorphism), all model classes (encapsulation) |
+| 2    | Wrapper Classes, Autoboxing | `Integer.parseInt()` and `Double.parseDouble()` for field parsing; autoboxing in `TableColumn<Booking, Double>` and billing calculations |
+| 3    | Multithreading            | `AutoSaveThread` (daemon, 60s interval), `CheckoutNotificationThread` (daemon, startup alert with `Platform.runLater()`) |
+| 4    | Synchronization           | `synchronized bookRoom()` in `BookingService` prevents double-booking race condition |
+| 5    | File Streams              | `FileOutputStream` / `FileInputStream` in `PersistenceService` wrapping the object streams |
+| 6    | Serialization             | All model classes implement `Serializable` with `serialVersionUID`; full state saved to `hotel_data.dat` via `ObjectOutputStream` |
+| 7    | Generics                  | `ArrayList<Room>`, `List<Booking>`, `Map<String, Customer>`, `Map<String, Double>` (discount codes), `ObservableList<T>` in all controllers |
+| 8    | Collections Framework     | `ArrayList` in `BookingService` and `RoomService`; `HashMap` in `CustomerService`; `stream()` with `Collectors.groupingBy()`, `filter()`, `mapToDouble()` throughout |
+| 9    | JavaFX + Scene Builder    | FXML for all views, CSS for theming, `TableView`, `ComboBox`, `DatePicker`, `TabPane`, `BarChart`, `Dialog`, `RadioButton`, `TextArea` all used |
+| 10   | Integration               | All above concepts combined in a single working, themed, persistent desktop application |
+
+---
+
+## Business Rules Enforced
+
+- A room cannot be booked if it already has an active (non-cancelled, non-checked-out) booking that overlaps the requested dates
+- A customer cannot be deleted if they have an active booking
+- A room cannot be deleted if it has an active booking
+- Check-in date cannot be in the past
+- Check-out must be strictly after check-in
+- Checkout is blocked for already-completed or cancelled bookings
+- Cancellation is blocked for already-completed bookings
+- Room service requests cannot be placed for checked-out or cancelled bookings
+
+---
+
+## Available Promo Codes
+
+| Code       | Discount |
+|------------|----------|
+| WELCOME10  | 10%      |
+| DELUXE15   | 15%      |
+| VIP20      | 20%      |
+| SUMMER5    | 5%       |
+| STAFF50    | 50%      |
+
+---
+
+## Files Changed in This Version
+
+| File                        | Status  | Change Summary                                        |
+|-----------------------------|---------|-------------------------------------------------------|
+| `Booking.java`              | Updated | Added `discountPercent`, `applyDiscount()`, feedback  |
+| `RoomServiceRequest.java`   | NEW     | Full model for room service requests                  |
+| `RoomServiceService.java`   | NEW     | Service layer for room service CRUD + charge totals   |
+| `AppContext.java`           | Updated | Added `roomServiceService`                            |
+| `PersistenceService.java`   | Updated | Now serializes/deserializes `RoomServiceRequest` list |
+| `BookingService.java`       | Updated | Added `isRoomAvailableForDates()`                     |
+| `RoomServiceController.java`| NEW     | Full controller for room services tab                 |
+| `DashboardController.java`  | Updated | BarChart, checkout-due thread, statistics panel       |
+| `BookingController.java`    | Updated | Discount codes, `AlertHelper` throughout, bill export |
+| `CustomerController.java`   | Updated | Real-time validation, `AlertHelper`, history viewer   |
+| `RoomController.java`       | Updated | `AlertHelper` throughout                              |
+| `AlertHelper.java`          | NEW     | Themed dialog utility replacing all system Alerts     |
+| `Main.java`                 | Updated | Updated persistence call signatures                   |
+| `Dashboard.fxml`            | Updated | BarChart node, Room Services tab, extra stat cards    |
+| `Bookings.fxml`             | Updated | Discount code field + export buttons                  |
+| `Customers.fxml`            | Updated | Hint labels, View History button                      |
+| `RoomServices.fxml`         | NEW     | Full room services UI                                 |

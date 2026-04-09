@@ -1,4 +1,4 @@
-# Hotel Management System — Developer README
+# Hotel Management System —README
 
 ## What This Project Is
 
